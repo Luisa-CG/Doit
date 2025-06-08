@@ -1,20 +1,57 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+    <ion-title>Doit</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-  </div>
+  <!-- Crear nueva tarea -->
+  <ion-item>
+    <ion-input [(ngModel)]="newTask" placeholder="Nueva tarea"></ion-input>
+    <ion-button (click)="addTask()">Agregar</ion-button>
+  </ion-item>
+
+  <!-- Selección de categoría para la nueva tarea -->
+  <ion-item>
+    <ion-select [(ngModel)]="selectedCategoryId" placeholder="Selecciona categoría">
+      <ion-select-option *ngFor="let cat of categories" [value]="cat.id">
+        {{ cat.name }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <!-- Filtro por categoría -->
+  <ion-label class="ion-margin-top">Filtrar por categoría:</ion-label>
+  <ion-chip *ngFor="let cat of categories; trackBy: trackByCategory" [outline]="selectedCategoryId !== cat.id" (click)="selectCategory(cat.id)">
+    {{ cat.name }}
+    <ion-icon name="close-circle" class="ion-margin-start" (click)="deleteCategory(cat.id)"></ion-icon>
+  </ion-chip>
+
+  <ion-chip *ngIf="selectedCategoryId" color="medium" (click)="clearCategoryFilter()">
+    Mostrar Todas
+  </ion-chip>
+
+  <!-- Lista de tareas -->
+  <ion-list>
+    <ion-item *ngFor="let task of filtered; trackBy: trackByTask">
+      <ion-checkbox slot="start" [(ngModel)]="task.done" (ionChange)="saveTasks()"></ion-checkbox>
+      <ion-label [ngStyle]="{ 'text-decoration': task.done ? 'line-through' : 'none' }">
+        {{ task.title }}
+        <div *ngIf="task.categoryId">
+          <small color="medium">({{ getCategoryName(task.categoryId) }})</small>
+        </div>
+      </ion-label>
+      <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task.id)">
+        <ion-icon name="trash"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+  <!-- Crear nueva categoría -->
+  <ion-item class="ion-margin-top">
+    <ion-input [(ngModel)]="newCategoryName" placeholder="Nueva categoría"></ion-input>
+    <ion-button (click)="addCategory()">Agregar</ion-button>
+  </ion-item>
+
 </ion-content>
