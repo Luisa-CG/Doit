@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { Category } from 'src/app/core/models/category.model';
 import { Storage } from '@ionic/storage-angular';
+import { TaskService } from 'src/app/core/services/task.service';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-manage-categories',
@@ -11,32 +13,59 @@ import { Storage } from '@ionic/storage-angular';
 export class ManageCategoriesPage {
   categories: Category[] = [];
   newCategoryName = '';
-  newCategoryColor = '#2196F3'; // color por defecto
+  newCategoryColor = '#2196F3';
 
-  constructor(private storage: Storage) { }
+  constructor(
+    private taskService: TaskService,
+    private alertCtrl: AlertController
+  ) {}
 
-  async ionViewWillEnter() {
-    const saved = await (this.storage as any).get('categories');
-    this.categories = saved || [];
+  ngOnInit(): void {
+    this.taskService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (error) => {
+        console.error('Error obteniendo categorías:', error);
+      }
+    });
   }
 
   async addCategory() {
-    if (!this.newCategoryName.trim()) return;
+    const name = this.newCategoryName.trim();
 
-    const newCat: Category = {
-      id: Date.now(),
-      name: this.newCategoryName.trim(),
+    if (!name) {
+      this.showAlert('El nombre no puede estar vacío.');
+      return;
+    }
+
+    const exists = this.categories.some(
+      c => c.name.toLowerCase() === name.toLowerCase()
+    );
+    if (exists) {
+      this.showAlert('Ya existe una categoría con ese nombre.');
+      return;
+    }
+
+    await this.taskService.addCategory({
+      name,
       color: this.newCategoryColor,
-    };
+    });
 
-    this.categories.push(newCat);
     this.newCategoryName = '';
     this.newCategoryColor = '#2196F3';
-    await (this.storage as any).set('categories', this.categories);
   }
 
-  async deleteCategory(id: number) {
-    this.categories = this.categories.filter(c => c.id !== id);
-    await (this.storage as any).set('categories', this.categories);
+  async deleteCategory(id: string) {
+    await this.taskService.deleteCategory(id);
+  }
+
+  async showAlert(message: string) {
+    const alert = await this.alertCtrl.create({
+      header: 'Atención',
+      message,
+      buttons: ['OK'],
+    });
+    await alert.present();
   }
 }

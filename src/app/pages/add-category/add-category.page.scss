@@ -1,0 +1,32 @@
+.big-card {
+    max-width: 600px;
+    margin: 0 auto;
+    --ion-card-border-radius: 16px;
+    --ion-card-padding: 1.5rem;
+}
+
+.color-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+
+    ion-input[type="color"] {
+        flex: 0 0 auto;
+        width: 3rem;
+        height: 3rem;
+        padding: 0;
+        border-radius: 50%;
+        border: none;
+
+        &:focus {
+            outline: none;
+        }
+    }
+}
+
+.save-button {
+    font-size: 1.1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}

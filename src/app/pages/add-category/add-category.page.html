@@ -7,18 +7,54 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-item>
-    <ion-label position="stacked">Nombre de la categoría</ion-label>
-    <ion-input [(ngModel)]="categoryName"></ion-input>
-  </ion-item>
+<ion-content fullscreen class="ion-padding">
+  <ion-grid>
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="12" size-md="8" size-lg="6">
+        <ion-card class="big-card">
+          <ion-card-header>
+            <ion-card-title>Agregar Categoría</ion-card-title>
+            <ion-card-subtitle>Completa los datos</ion-card-subtitle>
+          </ion-card-header>
 
-  <ion-item>
-    <ion-label position="stacked">Color</ion-label>
-    <ion-input type="color" [(ngModel)]="categoryColor"></ion-input>
-  </ion-item>
+          <ion-card-content>
+            <form (ngSubmit)="saveCategory()" #catForm="ngForm">
+              <ion-item lines="full">
+                <ion-label position="floating">Nombre de la categoría</ion-label>
+                <ion-input
+                  name="name"
+                  [(ngModel)]="newCategoryName"
+                  required
+                  clearInput
+                ></ion-input>
+              </ion-item>
 
-  <ion-button expand="block" class="ion-margin-top" (click)="saveCategory()">
-    Guardar categoría
-  </ion-button>
+              <ion-item lines="none" class="color-item">
+                <ion-label>Color</ion-label>
+                <ion-input
+                  type="color"
+                  name="color"
+                  [(ngModel)]="newCategoryColor"
+                ></ion-input>
+              </ion-item>
+            </form>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button
+          expand="full"
+          size="large"
+          fill="solid"
+          color="secondary"
+          shape="round"
+          class="save-button ion-margin-top"
+          [disabled]="!newCategoryName"
+          (click)="saveCategory()"
+        >
+          <ion-icon slot="start" name="save-outline"></ion-icon>
+          Guardar Categoría
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 </ion-content>

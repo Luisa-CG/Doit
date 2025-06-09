@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Category } from 'src/app/core/models/category.model';
 import { Storage } from '@ionic/storage-angular';
+import { TaskService } from 'src/app/core/services/task.service';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-add-category',
@@ -10,28 +12,59 @@ import { Storage } from '@ionic/storage-angular';
   standalone: false,
 })
 export class AddCategoryPage {
-  categoryName = '';
-  categoryColor = '#2196F3';
+  newCategoryName = '';
+  newCategoryColor = '#2196F3';
   categories: Category[] = [];
 
-  constructor(private storage: Storage, private router: Router) { }
+  constructor(
+    private taskService: TaskService,
+    private router: Router,
+    private alertCtrl: AlertController
+  ) {}
 
-  async ionViewWillEnter() {
-    const saved = await (this.storage as any).get('categories');
-    this.categories = saved || [];
+  ngOnInit(): void {
+    this.taskService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (error) => {
+        console.error('Error obteniendo categorías:', error);
+      }
+    });
   }
 
+
   async saveCategory() {
-    if (!this.categoryName.trim()) return;
+    const name = this.newCategoryName.trim();
 
-    const newCat: Category = {
-      id: Date.now(),
-      name: this.categoryName.trim(),
-      color: this.categoryColor,
-    };
+    if (!name) {
+      this.showAlert('El nombre de la categoría no puede estar vacío.');
+      return;
+    }
 
-    this.categories.push(newCat);
-    await (this.storage as any).set('categories', this.categories);
+    const exists = this.categories.some(
+      c => c.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (exists) {
+      this.showAlert('Ya existe una categoría con ese nombre.');
+      return;
+    }
+
+    await this.taskService.addCategory({
+      name,
+      color: this.newCategoryColor,
+    });
+
     this.router.navigate(['/manage-categories']);
+  }
+
+  async showAlert(message: string) {
+    const alert = await this.alertCtrl.create({
+      header: 'Atención',
+      message,
+      buttons: ['OK'],
+    });
+    await alert.present();
   }
 }

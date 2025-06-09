@@ -3,31 +3,33 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Categorías</ion-title>
+    <ion-title>Gestionar Categorías</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <!-- <ion-item>
-    <ion-input [(ngModel)]="newCategoryName" placeholder="Nombre de la categoría"></ion-input>
-    <ion-input type="color" [(ngModel)]="newCategoryColor"></ion-input>
-    <ion-button (click)="addCategory()">Agregar</ion-button>
-  </ion-item> -->
 
+  <!-- Lista de categorías existentes -->
   <ion-list>
+    <ion-list-header>
+      Categorías Existentes
+    </ion-list-header>
     <ion-item *ngFor="let cat of categories">
       <ion-avatar slot="start">
-        <div [style.background]="cat.color" style="width: 32px; height: 32px; border-radius: 50%;"></div>
+        <div [style.background]="cat.color"
+             style="width: 32px; height: 32px; border-radius: 50%;"></div>
       </ion-avatar>
-      <ion-label>{{ cat.name }}</ion-label>
+      <ion-label>
+        {{ cat.name }}
+      </ion-label>
       <ion-button fill="clear" color="danger" slot="end" (click)="deleteCategory(cat.id)">
-        <ion-icon name="trash-outline"></ion-icon>
+        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
       </ion-button>
     </ion-item>
   </ion-list>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="ion-margin">
-    <ion-fab-button routerLink="/add-category" color="primary">
+    <ion-fab-button [routerLink]="['/add-category']" color="primary">
       <ion-icon name="add-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
