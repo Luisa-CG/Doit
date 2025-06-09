@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Category } from 'src/app/core/models/category.model';
 import { Task } from '../../core/models/task.model';
 import { Storage } from '@ionic/storage-angular';
@@ -15,20 +15,36 @@ import { AlertController } from '@ionic/angular';
 })
 export class AddTaskPage implements OnInit {
   title = '';
-  selectedCategoryId: string | null = null;
+  selectedCategoryId?: string | null = null;
   categories: Category[] = [];
 
-  constructor(private taskService: TaskService, private router: Router, private alertCtrl: AlertController) { }
+  private editingId?: string;
+
+  constructor(private taskService: TaskService, private router: Router, private cd: ChangeDetectorRef,
+    private alertCtrl: AlertController, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
     this.taskService.getCategories().subscribe({
-      next: (categories) => {
-        this.categories = categories;
+      next: cats => {
+        this.categories = cats;
+        this.cd.markForCheck();
       },
-      error: (error) => {
-        console.error('Error obteniendo categorías:', error);
-      }
+      error: err => console.error(err)
     });
+
+    this.editingId = this.route.snapshot.paramMap.get('id') ?? undefined;
+    if (this.editingId) {
+      this.taskService.getTaskById(this.editingId)
+        .subscribe(task => {
+          this.title = task.title;
+          this.selectedCategoryId = task.categoryId;
+          this.cd.markForCheck();
+        });
+    }
+  }
+
+  get isEditing() {
+    return !!this.editingId;
   }
 
   private async showAlert(message: string) {
@@ -56,8 +72,12 @@ export class AddTaskPage implements OnInit {
       categoryId: this.selectedCategoryId
     };
 
-    const newId = await this.taskService.addTask(task);
-    await this.taskService.saveLocalDone(newId, false);
+    if (this.isEditing) {
+      await this.taskService.updateTask(this.editingId!, task);
+    } else {
+      const newId = await this.taskService.addTask(task);
+      await this.taskService.saveLocalDone(newId, false);
+    }
 
     this.router.navigate(['/home']);
   }

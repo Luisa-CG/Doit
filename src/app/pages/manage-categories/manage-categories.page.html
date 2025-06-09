@@ -16,12 +16,15 @@
     </ion-list-header>
     <ion-item *ngFor="let cat of categories">
       <ion-avatar slot="start">
-        <div [style.background]="cat.color"
-             style="width: 32px; height: 32px; border-radius: 50%;"></div>
+        <div [style.background]="cat.color" style="width: 32px; height: 32px; border-radius: 50%;"></div>
       </ion-avatar>
       <ion-label>
         {{ cat.name }}
       </ion-label>
+      <ion-button fill="clear" color="tertiary" slot="end" [routerLink]="['/edit-category', cat.id]"
+        (click)="$event.stopPropagation()">
+        <ion-icon name="create-outline"></ion-icon>
+      </ion-button>
       <ion-button fill="clear" color="danger" slot="end" (click)="confirmDeleteCategory(cat.id)">
         <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
       </ion-button>

@@ -41,7 +41,7 @@
         <ion-button expand="full" size="large" fill="solid" color="secondary" shape="round"
           class="save-button ion-margin-top" [disabled]="!title.trim() || !selectedCategoryId" (click)="saveTask()">
           <ion-icon slot="start" name="checkmark-outline"></ion-icon>
-          Guardar Tarea
+          {{ isEditing ? 'Guardar cambios' : 'Guardar Tarea' }}
         </ion-button>
 
       </ion-col>

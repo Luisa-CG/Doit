@@ -36,7 +36,12 @@
             </div>
           </ion-label>
 
-          <ion-button fill="clear" color="danger" slot="end" (click)="confirmDeleteTask(task.id); $event.stopPropagation()">
+          <ion-button fill="clear" color="tertiary" slot="end" [routerLink]="['/edit-task', task.id]"
+            (click)="$event.stopPropagation()">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" color="danger" slot="end"
+            (click)="confirmDeleteTask(task.id); $event.stopPropagation()">
             <ion-icon name="trash-outline"></ion-icon>
           </ion-button>
         </ion-item>

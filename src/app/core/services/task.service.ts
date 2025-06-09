@@ -1,10 +1,11 @@
 // src/app/core/services/task.service.ts
 import { Injectable } from '@angular/core';
-import { Firestore, collection, collectionData, addDoc, doc, deleteDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, addDoc, doc, deleteDoc, docData } from '@angular/fire/firestore';
 import { Storage } from '@ionic/storage-angular';
 import { Observable } from 'rxjs';
 import { Task } from '../models/task.model';
 import { Category } from '../models/category.model';
+import { updateDoc } from 'firebase/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +18,7 @@ export class TaskService {
     private storage: Storage
   ) {
     // inicializa Ionic Storage
-    this.storageReady = this.storage.create().then(() => {});
+    this.storageReady = this.storage.create().then(() => { });
   }
 
   private async ensureStorage() {
@@ -44,6 +45,18 @@ export class TaskService {
     return ref.id;
   }
 
+  /** Devuelve un Observable con la categoría indicada */
+  getCategoryById(id: string): Observable<Category> {
+    const ref = doc(this.firestore, `categories/${id}`);
+    return docData(ref, { idField: 'id' }) as Observable<Category>;
+  }
+
+  /** Actualiza una categoría existente */
+  async updateCategory(id: string, data: Partial<Category>): Promise<void> {
+    const ref = doc(this.firestore, `categories/${id}`);
+    await updateDoc(ref, data);
+  }
+
   /** Elimina una categoría de Firestore */
   async deleteCategory(id: string): Promise<void> {
     await this.ensureStorage();
@@ -57,6 +70,18 @@ export class TaskService {
     const colRef = collection(this.firestore, 'tasks');
     const ref = await addDoc(colRef, task);
     return ref.id;
+  }
+
+  /** Obtiene una tarea por ID  */
+  getTaskById(id: string) {
+    const ref = doc(this.firestore, `tasks/${id}`);
+    return docData(ref, { idField: 'id' }) as Observable<Task>;
+  }
+
+  /** Actualiza una tarea existente */
+  async updateTask(id: string, data: Partial<Task>): Promise<void> {
+    const docRef = doc(this.firestore, `tasks/${id}`);
+    await updateDoc(docRef, data);
   }
 
   /** Elimina una tarea de Firestore y del storage local */

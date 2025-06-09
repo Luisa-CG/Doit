@@ -19,6 +19,14 @@ const routes: Routes = [
     path: 'add-category',
     loadChildren: () => import('./pages/add-category/add-category.module').then( m => m.AddCategoryPageModule)
   },
+  {
+    path: 'edit-task/:id',
+    loadChildren: () => import('./pages/add-task/add-task.module').then(m => m.AddTaskPageModule)
+  },
+  {
+    path: 'edit-category/:id',
+    loadChildren: () => import('./pages/add-category/add-category.module').then( m => m.AddCategoryPageModule)
+  },
   // {
   //   path: 'settings',
   //   loadChildren: () => import('./pages/settings/settings.module').then(m => m.SettingsPageModule)
