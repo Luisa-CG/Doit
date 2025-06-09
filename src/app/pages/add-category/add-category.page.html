@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/manage-categories"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Nueva Categoría</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-item>
+    <ion-label position="stacked">Nombre de la categoría</ion-label>
+    <ion-input [(ngModel)]="categoryName"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Color</ion-label>
+    <ion-input type="color" [(ngModel)]="categoryColor"></ion-input>
+  </ion-item>
+
+  <ion-button expand="block" class="ion-margin-top" (click)="saveCategory()">
+    Guardar categoría
+  </ion-button>
+</ion-content>
