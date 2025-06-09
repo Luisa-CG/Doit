@@ -1,7 +1,8 @@
 {
   "name": "Doit",
   "integrations": {
-    "capacitor": {}
+    "capacitor": {},
+    "cordova": {}
   },
   "type": "angular"
 }
