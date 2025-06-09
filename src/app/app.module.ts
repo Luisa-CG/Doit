@@ -7,7 +7,7 @@ import { IonicStorageModule }                from '@ionic/storage-angular';
 
 import { AngularFireModule }              from '@angular/fire/compat';
 import { AngularFireAuthModule }          from '@angular/fire/compat/auth';
-import { AngularFireRemoteConfigModule }  from '@angular/fire/compat/remote-config';
+import { AngularFireRemoteConfigModule, SETTINGS, DEFAULTS } from '@angular/fire/compat/remote-config';
 
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import {
@@ -41,6 +41,16 @@ import { environment }       from '../environments/environment';
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+
+     // Remote Config: settings y defaults
+     { 
+      provide: SETTINGS, 
+      useValue: { minimumFetchIntervalMillis: 0 } 
+    },
+    { 
+      provide: DEFAULTS, 
+      useValue: { show_special_feature: true } 
+    },
 
     // Registramos la app Firebase y Firestore modular
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),

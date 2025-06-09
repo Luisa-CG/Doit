@@ -1,77 +1,85 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { Task } from '../../core/models/task.model';
-import { Storage } from '@ionic/storage-angular';
-import { Category } from '../../core/models/category.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { AngularFireRemoteConfig } from '@angular/fire/compat/remote-config';
 import { TaskService } from 'src/app/core/services/task.service';
+import { Task } from '../../core/models/task.model';
+import { Category } from '../../core/models/category.model';
 
 @Component({
   selector: 'app-home',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  standalone: false,
+  standalone: false
 })
 export class HomePage {
-  tasks: Task[] = [];
+  tasks: Array<Task & { done: boolean }> = [];
   categories: Category[] = [];
-  filtered: Task[] = [];
-  selectedCategoryId?: string | null;
-  newTask = '';
-  newCategoryName = '';
-  private storageReady = false;
+  filtered: Array<Task & { done: boolean }> = [];
+  selectedCategoryId?: string;
+  showSpecialFeature = true;
 
-  showSpecialFeature = false;
+  constructor(
+    private remoteConfig: AngularFireRemoteConfig,
+    private taskService: TaskService,
+    private cd: ChangeDetectorRef
+  ) { }
 
-  constructor(private storage: Storage, private remoteConfig: AngularFireRemoteConfig, private taskService: TaskService,     private cd: ChangeDetectorRef) { }
-
+  /** Se dispara cada vez que la vista va a mostrarse */
   ionViewWillEnter(): void {
+    this.loadCategoriesAndTasks();
+    this.loadRemoteConfigFlag();
+  }
+
+  /** Carga categorías, tareas y aplica filtro */
+  private async loadCategoriesAndTasks() {
+    // Categorías
     this.taskService.getCategories().subscribe(cats => {
       this.categories = cats;
       this.cd.markForCheck();
     });
 
-    this.taskService.getLocalDoneMap().then(doneMap => {
-      this.taskService.getTasks().subscribe(tasks => {
-        this.tasks = tasks.map(t => ({
-          ...t,
-          done: doneMap[t.id] ?? false
-        }));
-        this.cd.markForCheck();
-      });
-    });
-
-    this.remoteConfig.fetchAndActivate()
-      .then(() => this.remoteConfig.getBoolean('show_special_feature'))
-      .then(flag => {
-        this.showSpecialFeature = flag;
-        this.cd.markForCheck();
-      });
-  }
-
-  async ngOnInit() {
-    // Obtener categorías desde Firebase
-    this.taskService.getCategories().subscribe(cats => {
-      this.categories = cats;
-    });
-
-    // Obtener tareas desde Firebase y combinar con estado "done" local
+    // Tareas + estado “done”
     const doneMap = await this.taskService.getLocalDoneMap();
-
     this.taskService.getTasks().subscribe(tasks => {
-      this.tasks = tasks.map(t => ({
-        ...t,
-        done: doneMap[t.id] ?? false
-      }));
-      this.updateFilteredTasks();
+      this.tasks = tasks.map(t => ({ ...t, done: doneMap[t.id] ?? false }));
+      this.applyFilter();
+      this.cd.markForCheck();
     });
-
-    // Remote Config: obtener bandera de funcionalidad especial
-    await this.remoteConfig.fetchAndActivate();
-    this.showSpecialFeature = await this.remoteConfig.getBoolean('show_special_feature');
   }
 
-  async toggleDone(task: Task) {
+  private async loadRemoteConfigFlag(): Promise<void> {
+    try {
+      await this.remoteConfig.fetchAndActivate();
+
+      const rcValue = await this.remoteConfig.getValue('show_special_feature');
+      this.showSpecialFeature = rcValue.asBoolean();
+
+    } catch (err) {
+      console.error('Remote Config error', err);
+      this.showSpecialFeature = true;
+    }
+    this.cd.markForCheck();
+  }
+
+  selectCategory(value: string | number | undefined) {
+    this.selectedCategoryId = typeof value === 'string' ? value : undefined;
+    this.applyFilter();
+  }
+
+  clearCategoryFilter() {
+    this.selectedCategoryId = undefined;
+    this.applyFilter();
+  }
+
+  private applyFilter() {
+    if (!this.selectedCategoryId) {
+      this.filtered = this.tasks;
+    } else {
+      this.filtered = this.tasks.filter(t => t.categoryId === this.selectedCategoryId);
+    }
+  }
+
+  async toggleDone(task: Task & { done: boolean }) {
     task.done = !task.done;
     await this.taskService.saveLocalDone(task.id, task.done);
   }
@@ -80,39 +88,27 @@ export class HomePage {
     await this.taskService.deleteTask(id);
   }
 
-  selectCategory(value: string | number | undefined) {
-    this.selectedCategoryId = typeof value === 'string' ? value : undefined;
-    this.updateFilteredTasks();
-  }
-
-  clearCategoryFilter() {
-    this.selectedCategoryId = null;
-    this.updateFilteredTasks();
-  }
-
-  updateFilteredTasks() {
-    if (!this.selectedCategoryId) {
-      this.filtered = this.tasks;
-    } else {
-      this.filtered = this.tasks.filter(t => t.categoryId === this.selectedCategoryId);
-    }
-  }
-
-  getCategoryName(id: string): string {
-    const cat = this.categories.find(c => c.id === id);
-    return cat ? cat.name : 'Sin categoría';
-  }
-
-  getCategoryColor(id?: string | null): string {
-    const cat = this.categories.find(c => c.id === id);
-    return cat?.color || '#cccccc';
-  }
-
   trackByTask(index: number, task: Task) {
     return task.id;
   }
 
   trackByCategory(index: number, cat: Category) {
     return cat.id;
+  }
+
+  getCategoryColor(id?: string) {
+    const cat = this.categories.find(c => c.id === id);
+    return cat?.color || '#cccccc';
+  }
+
+  getCategoryName(id: string) {
+    const cat = this.categories.find(c => c.id === id);
+    return cat ? cat.name : 'Sin categoría';
+  }
+
+  get displayedTasks() {
+    return this.showSpecialFeature
+      ? this.filtered
+      : this.tasks;
   }
 }

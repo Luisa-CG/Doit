@@ -9,32 +9,30 @@
 
 <ion-content class="ion-padding">
 
-  <ion-segment [(ngModel)]="selectedCategoryId" (ionChange)="selectCategory($event.detail.value)" scrollable
-    class="category-segment">
-    <ion-segment-button *ngFor="let cat of categories; trackBy: trackByCategory" [value]="cat.id">
-      {{ cat.name }}
-    </ion-segment-button>
-    <ion-segment-button value="">
-      Todas
-    </ion-segment-button>
-  </ion-segment>
-
+  <ng-container *ngIf="showSpecialFeature">
+    <ion-segment [(ngModel)]="selectedCategoryId" (ionChange)="selectCategory($event.detail.value)" scrollable
+      class="category-segment">
+      <ion-segment-button *ngFor="let cat of categories; trackBy: trackByCategory" [value]="cat.id">
+        {{ cat.name }}
+      </ion-segment-button>
+      <ion-segment-button value="">
+        Todas
+      </ion-segment-button>
+    </ion-segment>
+  </ng-container>
 
   <ion-list>
-    <ion-card class="task-card" *ngFor="let task of filtered; trackBy: trackByTask">
+    <ion-card class="task-card" *ngFor="let task of displayedTasks; trackBy: trackByTask">
       <div class="task-color-bar" [style.background]="getCategoryColor(task.categoryId)"></div>
-
       <ion-card-content>
         <ion-item lines="none" class="task-item">
           <ion-checkbox slot="start" [(ngModel)]="task.done" (ionChange)="toggleDone(task)"></ion-checkbox>
-
           <ion-label [class.done]="task.done">
             {{ task.title }}
             <div *ngIf="task.categoryId" class="task-category">
               {{ getCategoryName(task.categoryId) }}
             </div>
           </ion-label>
-
           <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task.id)">
             <ion-icon name="trash-outline"></ion-icon>
           </ion-button>
