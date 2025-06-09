@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Task } from '../../core/models/task.model';
 import { Storage } from '@ionic/storage-angular';
 import { Category } from '../../core/models/category.model';
 import { AngularFireRemoteConfig } from '@angular/fire/compat/remote-config';
+import { TaskService } from 'src/app/core/services/task.service';
 
 @Component({
   selector: 'app-home',
@@ -15,95 +16,72 @@ export class HomePage {
   tasks: Task[] = [];
   categories: Category[] = [];
   filtered: Task[] = [];
-  selectedCategoryId: number | null = null;
+  selectedCategoryId?: string | null;
   newTask = '';
   newCategoryName = '';
   private storageReady = false;
 
   showSpecialFeature = false;
 
-  constructor(private storage: Storage, private remoteConfig: AngularFireRemoteConfig) { }
+  constructor(private storage: Storage, private remoteConfig: AngularFireRemoteConfig, private taskService: TaskService,     private cd: ChangeDetectorRef) { }
+
+  ionViewWillEnter(): void {
+    this.taskService.getCategories().subscribe(cats => {
+      this.categories = cats;
+      this.cd.markForCheck();
+    });
+
+    this.taskService.getLocalDoneMap().then(doneMap => {
+      this.taskService.getTasks().subscribe(tasks => {
+        this.tasks = tasks.map(t => ({
+          ...t,
+          done: doneMap[t.id] ?? false
+        }));
+        this.cd.markForCheck();
+      });
+    });
+
+    this.remoteConfig.fetchAndActivate()
+      .then(() => this.remoteConfig.getBoolean('show_special_feature'))
+      .then(flag => {
+        this.showSpecialFeature = flag;
+        this.cd.markForCheck();
+      });
+  }
 
   async ngOnInit() {
-
-    await (this.storage as any).create();
-    this.storageReady = true;
-
-    const savedTasks = await (this.storage as any).get('tasks');
-    const savedCategories = await (this.storage as any).get('categories');
-
-    if (savedTasks) {
-      this.tasks = savedTasks;
-    }
-
-    if (savedCategories) {
-      this.categories = savedCategories;
-    }
-
-    this.updateFilteredTasks();
-
-    // Remote Config
-    await this.remoteConfig.fetchAndActivate();
-    const flag = await this.remoteConfig.getBoolean('show_special_feature');
-    this.showSpecialFeature = flag;
-  }
-
-  async addTask() {
-    if (this.newTask.trim()) {
-      const task: Task = {
-        id: Date.now(),
-        title: this.newTask,
-        done: false,
-        categoryId: this.selectedCategoryId || null,
-      };
-      this.tasks.push(task);
-      this.newTask = '';
-      await this.saveTasks();
-    }
-  }
-
-  async deleteTask(id: number) {
-    this.tasks = this.tasks.filter(task => task.id !== id);
-    this.saveTasks();
-    this.updateFilteredTasks();
-  }
-
-  async saveTasks() {
-    if (this.storageReady) {
-      await (this.storage as any).set('tasks', this.tasks);
-    }
-  }
-
-  async saveCategories() {
-    if (this.storageReady) {
-      await (this.storage as any).set('categories', this.categories);
-    }
-  }  
-
-  addCategory() {
-    if (this.newCategoryName.trim()) {
-      const newCat: Category = {
-        id: Date.now(),
-        name: this.newCategoryName.trim(),
-      };
-      this.categories.push(newCat);
-      this.newCategoryName = '';
-      this.saveCategories();
-    }
-  }
-
-  deleteCategory(id: number) {
-    this.categories = this.categories.filter(cat => cat.id !== id);
-    this.tasks = this.tasks.map(t => {
-      if (t.categoryId === id) t.categoryId = null;
-      return t;
+    // Obtener categorías desde Firebase
+    this.taskService.getCategories().subscribe(cats => {
+      this.categories = cats;
     });
-    this.saveCategories();
-    this.saveTasks();
+
+    // Obtener tareas desde Firebase y combinar con estado "done" local
+    const doneMap = await this.taskService.getLocalDoneMap();
+
+    this.taskService.getTasks().subscribe(tasks => {
+      this.tasks = tasks.map(t => ({
+        ...t,
+        done: doneMap[t.id] ?? false
+      }));
+      this.updateFilteredTasks();
+    });
+
+    // Remote Config: obtener bandera de funcionalidad especial
+    await this.remoteConfig.fetchAndActivate();
+    this.showSpecialFeature = await this.remoteConfig.getBoolean('show_special_feature');
   }
 
-  selectCategory(id: number) {
-    this.selectedCategoryId = id;
+  async toggleDone(task: Task) {
+    task.done = !task.done;
+    await this.taskService.saveLocalDone(task.id, task.done);
+  }
+
+  async deleteTask(id: string) {
+    await this.taskService.deleteTask(id);
+  }
+
+  selectCategory(value: string | number | undefined) {
+    this.selectedCategoryId = typeof value === 'string' ? value : undefined;
     this.updateFilteredTasks();
   }
 
@@ -120,14 +98,14 @@ export class HomePage {
     }
   }
 
-  filteredTasks(): Task[] {
-    if (!this.selectedCategoryId) return this.tasks;
-    return this.tasks.filter(t => t.categoryId === this.selectedCategoryId);
-  }
-  
-  getCategoryName(id: number): string {
+  getCategoryName(id: string): string {
     const cat = this.categories.find(c => c.id === id);
     return cat ? cat.name : 'Sin categoría';
+  }
+
+  getCategoryColor(id?: string | null): string {
+    const cat = this.categories.find(c => c.id === id);
+    return cat?.color || '#cccccc';
   }
 
   trackByTask(index: number, task: Task) {
@@ -137,10 +115,4 @@ export class HomePage {
   trackByCategory(index: number, cat: Category) {
     return cat.id;
   }
-
-  getCategoryColor(id?: number | null): string {
-    const cat = this.categories.find(c => c.id === id);
-    return cat?.color || '#cccccc';
-  }  
-  
 }
