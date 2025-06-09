@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { Task } from '../core/models/task.model';
+import { Task } from '../../core/models/task.model';
 import { Storage } from '@ionic/storage-angular';
-import { Category } from '../core/models/category.model';
+import { Category } from '../../core/models/category.model';
 import { AngularFireRemoteConfig } from '@angular/fire/compat/remote-config';
 
 @Component({
@@ -137,5 +137,10 @@ export class HomePage {
   trackByCategory(index: number, cat: Category) {
     return cat.id;
   }
+
+  getCategoryColor(id?: number | null): string {
+    const cat = this.categories.find(c => c.id === id);
+    return cat?.color || '#cccccc';
+  }  
   
 }
