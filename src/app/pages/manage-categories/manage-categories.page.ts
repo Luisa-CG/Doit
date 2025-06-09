@@ -18,7 +18,7 @@ export class ManageCategoriesPage {
   constructor(
     private taskService: TaskService,
     private alertCtrl: AlertController
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.taskService.getCategories().subscribe({
@@ -56,8 +56,29 @@ export class ManageCategoriesPage {
     this.newCategoryColor = '#2196F3';
   }
 
-  async deleteCategory(id: string) {
-    await this.taskService.deleteCategory(id);
+  async confirmDeleteCategory(id: string) {
+    const alert = await this.alertCtrl.create({
+      header: '⚠️ Eliminar categoría',
+      message: '¿Seguro que quieres eliminar esta categoría? Las tareas asociadas quedarán sin categoría',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          handler: () => this.doDeleteCategory(id)
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private async doDeleteCategory(id: string) {
+    try {
+      await this.taskService.deleteCategory(id);
+      this.categories = this.categories.filter(c => c.id !== id);
+    } catch (err) {
+      console.error('Error eliminando categoría:', err);
+      this.showAlert('No se pudo eliminar la categoría. Intenta de nuevo.');
+    }
   }
 
   async showAlert(message: string) {

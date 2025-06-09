@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Doit</ion-title>
+    <ion-title>🎯​ Do it!</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -26,14 +26,17 @@
       <div class="task-color-bar" [style.background]="getCategoryColor(task.categoryId)"></div>
       <ion-card-content>
         <ion-item lines="none" class="task-item">
-          <ion-checkbox slot="start" [(ngModel)]="task.done" (ionChange)="toggleDone(task)"></ion-checkbox>
+          <ion-checkbox slot="start" [checked]="task.done"
+            (ionChange)="onToggleDone($event.detail.checked, task)"></ion-checkbox>
+
           <ion-label [class.done]="task.done">
             {{ task.title }}
             <div *ngIf="task.categoryId" class="task-category">
               {{ getCategoryName(task.categoryId) }}
             </div>
           </ion-label>
-          <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task.id)">
+
+          <ion-button fill="clear" color="danger" slot="end" (click)="confirmDeleteTask(task.id); $event.stopPropagation()">
             <ion-icon name="trash-outline"></ion-icon>
           </ion-button>
         </ion-item>

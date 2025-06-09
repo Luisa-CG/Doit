@@ -3,6 +3,7 @@ import { AngularFireRemoteConfig } from '@angular/fire/compat/remote-config';
 import { TaskService } from 'src/app/core/services/task.service';
 import { Task } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -21,7 +22,8 @@ export class HomePage {
   constructor(
     private remoteConfig: AngularFireRemoteConfig,
     private taskService: TaskService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private alertCtrl: AlertController
   ) { }
 
   /** Se dispara cada vez que la vista va a mostrarse */
@@ -84,8 +86,31 @@ export class HomePage {
     await this.taskService.saveLocalDone(task.id, task.done);
   }
 
-  async deleteTask(id: string) {
-    await this.taskService.deleteTask(id);
+  onToggleDone(checked: boolean, task: Task & { done: boolean }) {
+    task.done = checked;
+    this.taskService.saveLocalDone(task.id, checked)
+      .then(() => this.cd.markForCheck());
+  }
+
+  async confirmDeleteTask(taskId: string) {
+    const alert = await this.alertCtrl.create({
+      header: '⚠️ Eliminar tarea',
+      message: '¿Estás seguro de que quieres eliminar esta tarea?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          handler: () => this.doDeleteTask(taskId)
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private async doDeleteTask(taskId: string) {
+    await this.taskService.deleteTask(taskId);
+    this.applyFilter();
+    this.cd.markForCheck();
   }
 
   trackByTask(index: number, task: Task) {
