@@ -9,48 +9,41 @@
 
 <ion-content class="ion-padding">
 
-  <!-- Selección de categoría para la nueva tarea -->
-  <ion-item>
-    <ion-label position="stacked">Filtrar por categoría</ion-label>
-    <ion-chip *ngFor="let cat of categories; trackBy: trackByCategory" [outline]="selectedCategoryId !== cat.id"
-      (click)="selectCategory(cat.id)">
+  <ion-segment [(ngModel)]="selectedCategoryId" (ionChange)="selectCategory($event.detail.value)"
+    class="category-segment">
+    <ion-segment-button *ngFor="let cat of categories; trackBy: trackByCategory" [value]="cat.id">
       {{ cat.name }}
-      <ion-icon name="close-circle" class="ion-margin-start" (click)="deleteCategory(cat.id)">
-      </ion-icon>
-    </ion-chip>
-    <ion-chip *ngIf="selectedCategoryId" color="medium" (click)="clearCategoryFilter()">
-      Mostrar Todas
-    </ion-chip>
-  </ion-item>
+    </ion-segment-button>
+    <ion-segment-button value="">
+      Todas
+    </ion-segment-button>
+  </ion-segment>
 
-  <!-- Lista de tareas -->
   <ion-list>
-    <div class="task-card" *ngFor="let task of filtered; trackBy: trackByTask">
-      <ion-item lines="none" class="task-item">
-        <div slot="start" class="color-bar" [style.background]="getCategoryColor(task.categoryId ?? undefined)"></div>
+    <ion-card class="task-card" *ngFor="let task of filtered; trackBy: trackByTask">
+      <div class="task-color-bar" [style.background]="getCategoryColor(task.categoryId)"></div>
 
-        <label class="custom-checkbox" slot="start">
-          <input type="checkbox" [(ngModel)]="task.done" (change)="saveTasks()" />
-          <div class="checkmark"></div>
-        </label>
+      <ion-card-content>
+        <ion-item lines="none" class="task-item">
+          <ion-checkbox slot="start" [(ngModel)]="task.done" (ionChange)="toggleDone(task)"></ion-checkbox>
 
-        <ion-label class="task-label" [ngStyle]="{ 'text-decoration': task.done ? 'line-through' : 'none' }">
-          {{ task.title }}
-          <div *ngIf="task.categoryId">
-            <small color="medium">({{ getCategoryName(task.categoryId) }})</small>
-          </div>
-        </ion-label>
+          <ion-label [class.done]="task.done">
+            {{ task.title }}
+            <div *ngIf="task.categoryId" class="task-category">
+              {{ getCategoryName(task.categoryId) }}
+            </div>
+          </ion-label>
 
-        <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task.id)">
-          <ion-icon name="trash-outline"></ion-icon>
-        </ion-button>
-      </ion-item>
-    </div>
-
+          <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task.id)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
   </ion-list>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="ion-margin">
-    <ion-fab-button [routerLink]="['/add-task']" color="primary">
+    <ion-fab-button routerLink="/add-task" color="primary">
       <ion-icon name="add-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
