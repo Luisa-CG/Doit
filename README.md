@@ -56,6 +56,11 @@ platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
 ```
 Descarga el APK: https://github.com/Luisa-CG/Doit/releases/download/APK/doit-app.apk
 
+Demo:
+<p align="center">
+  <img src="public/demo.gif" alt="Demo de la app" width="200"/>
+</p>
+
 ### 🍏 Ejecutar en iOS (solo en macOS)
 
 1. Agrega la plataforma:
