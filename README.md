@@ -54,6 +54,7 @@ El archivo APK generado estará en:
 ```
 platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
 ```
+Descarga el APK: https://github.com/Luisa-CG/Doit/releases/download/APK/doit-app.apk
 
 ### 🍏 Ejecutar en iOS (solo en macOS)
 
